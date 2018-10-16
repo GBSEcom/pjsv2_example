@@ -11,12 +11,12 @@ npm install
 
 3. Compile
 ~~~
-bin/build
+npm run build
 ~~~
 
 4. Start Server
 ~~~
-bin/www
+npm run start
 ~~~
 
 5. Merchant URL
