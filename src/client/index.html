@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" >
+    <title>Merchant App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="/public/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Merchant Demo</h1>
+    <div class="status">&nbsp;</div>
+    <form id="form">
+      <div class="overlay"><div class="loader">loading form</div></div>
+      <input type="hidden" id="pjs2env" value="<%= htmlWebpackPlugin.options.PJS2_ENV %>">
+      <div>
+        <label for="gateway" class="control-label">Gateway</label>
+        <select id="gateway" class="form-controls" data-gateway>
+          <option value="BLUEPAY" selected>BluePay</option>
+          <option value="CARD_CONNECT">CardConnect</option>
+          <option value="PAYEEZY">Payeezy</option>
+        </select>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="zauth" data-zauth>
+        <label for="zauth" class="form-check-label">Use ZeroDollarAuth</label>
+      </div>
+      <div>
+        <label for="company" class="control-label">Company</label>
+        <input type="text" name="company" id="company" class="form-controls">
+      </div>
+      <div>
+        <label for="cc-name" class="control-label">Card Holder Name</label>
+        <div class="form-controls payment-fields disabled" id="cc-name" data-cc-name></div>
+      </div>
+      <label for="cc-card" class="control-label">Card Number  </label>
+      <div class="form-controls payment-fields disabled empty" id="cc-card" data-cc-card></div>
+      <div class="col1">
+        <label for="cc-exp" class="control-label">Exp Date</label>
+        <div class="form-controls payment-fields disabled empty" id="cc-exp" data-cc-exp></div>
+      </div>
+      <div class="col2">
+        <label for="cc-cvv" class="control-label">CVV</label>
+        <div class="form-controls payment-fields disabled empty" id="cc-cvv" data-cc-cvv></div>
+      </div>
+      <button id="submit" class="btn--primary disabled-bkg" data-submit-btn disabled>
+        <span class="btn__loader" style="display:none;">loading...</span>Pay <span data-card-type></span>
+      </button>
+      <div class="btn-group">
+        <button class="btn--secondary" data-getState-btn>State</button>
+        <button class="btn--secondary" data-destroy-btn>Destroy</button>
+        <button class="btn--secondary" data-reset-btn>Reset</button>
+      </div>
+      <pre id="response"></pre>
+    </form>
+  </div>
+  <script src="<%= htmlWebpackPlugin.options.API_URL %>js/payment-v<%= htmlWebpackPlugin.options.VERSION %>.js"></script>
+</body>
+</html>

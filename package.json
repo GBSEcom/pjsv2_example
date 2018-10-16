@@ -1,0 +1,58 @@
+{
+  "name": "firstdata",
+  "version": "2.0.0",
+  "description": "Merchant PaymentJS Demo",
+  "main": "build/server.bundle.js",
+  "author": "Brandon Garcia <brandon.garcia@firstdata.com>",
+  "contributors": [
+    "Aaron Brownell <aaron.brownell@firstdata.com>",
+    "Brandon Garcia <brandon.garcia@firstdata.com>"
+  ],
+  "license": "ISC",
+  "engine": "node >= 8.9.4",
+  "scripts": {
+    "start": "node build/server.bundle.js",
+    "build": "webpack --progress -p --config webpack.config.js"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.2",
+    "@babel/core": "^7.1.2",
+    "@babel/node": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-json-strings": "^7.0.0",
+    "@babel/plugin-syntax-dynamic-import": "^7.0.0",
+    "@babel/plugin-syntax-import-meta": "^7.0.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-typescript": "^7.1.0",
+    "@babel/register": "^7.0.0",
+    "@types/cookie-parser": "^1.4.1",
+    "@types/express": "^4.16.0",
+    "@types/http-errors": "^1.6.1",
+    "@types/morgan": "^1.7.35",
+    "@types/request-ip": "0.0.33",
+    "awesome-typescript-loader": "^5.2.1",
+    "babel-loader": "^8.0.4",
+    "babel-plugin-module-resolver": "^3.1.1",
+    "copy-webpack-plugin": "^4.5.2",
+    "html-minifier": "^3.5.20",
+    "html-webpack-plugin": "^3.2.0",
+    "ts-loader": "^5.1.1",
+    "tslint": "^5.10.0",
+    "tslint-config-airbnb": "^5.9.2",
+    "typescript": "^3.0.3",
+    "webpack": "^4.19.0",
+    "webpack-cli": "^3.1.0",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.0",
+    "http-errors": "~1.6.2",
+    "morgan": "~1.9.0",
+    "nodemon": "^1.17.5",
+    "pug": "2.0.0-beta11",
+    "request-ip": "^2.1.1"
+  }
+}

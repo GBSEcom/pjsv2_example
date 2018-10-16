@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "preserveConstEnums": true,
+    "strictNullChecks": true,
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "target": "es5",
+    "sourceMap": false,
+    "strict": true,
+    "removeComments": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "jsx": "react",
+    "lib": ["es6", "es2015"]
+  },
+  "include": [
+    "src/server/*.ts",
+    "src/server/*.tsx",
+    "src/common/*.ts",
+    "src/common/*.tsx"
+  ],
+  "exclude": ["node_modules"]
+}
