@@ -345,8 +345,13 @@ label.invalid {
   font-weight: 600;
 }
 
+.checkbox-control {
+  -webkit-appearance: checkbox;
+  height: auto;
+  width: auto;
+}
 
-
-
-
+.checkbox-div {
+  margin-bottom: 10px;
+}
 

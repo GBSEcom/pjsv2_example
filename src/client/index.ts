@@ -95,9 +95,21 @@ const onNewTransaction = () => {
   });
 };
 
-const getWebookResponse = (clientToken: string) =>
+const getWebhookResponse = (clientToken: string) =>
   axios(fmtGetWebhookResponseReq(clientToken))
     .then((res: AxiosResponse) => isErrorMessage(res.data, 'Webhook'));
+
+const tryGetWebhookResponseHelper = (clientToken: string, maxAttempts: number, currentAttempt: number) => {
+  if (currentAttempt < maxAttempts) {
+    return getWebhookResponse(clientToken).catch((error: Error) => {
+      return tryGetWebhookResponseHelper(clientToken, maxAttempts, currentAttempt + 1);
+    });
+  }
+  return getWebhookResponse(clientToken)
+};
+
+const tryGetWebhookResponse = (clientToken: string) =>
+  tryGetWebhookResponseHelper(clientToken, 3, 1);
 
 const displayTransactionMsg = (res: any, clientToken: string) => {
   if (res.status !== 1) {
@@ -147,7 +159,7 @@ const trySubmit = () => {
       return clientToken;
     })
     .then(tokenize)
-    .then(() => getWebookResponse(clientToken))
+    .then(() => tryGetWebhookResponse(clientToken))
     .then((res: any) => displayTransactionMsg(res, clientToken));
 };
 
