@@ -105,7 +105,7 @@ export function makeServer() {
   const server = http.createServer(app);
   server.on("error", makeServerErrorListener(port));
 
-  let secureServer: https.Server|undefined;
+  let secureServer: https.Server;
   if (Context.hasSsl()) {
     secureServer = https.createServer(getHttpsOptions(), app);
     secureServer.on("error", makeServerErrorListener(port + 1));
@@ -113,7 +113,7 @@ export function makeServer() {
 
   return () => {
     server.listen(port, () => onListen(server));
-    if (secureServer) {
+    if (secureServer != null) {
       secureServer.listen(port + 1, () => onListen(secureServer));
     }
   };
