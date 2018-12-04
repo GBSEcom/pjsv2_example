@@ -91,5 +91,16 @@ module.exports = {
       apiKey: '',
       apiSecret: '',
     }
+  },
+
+  ssl: {
+    // path to ssl key (can be same file as cert)
+    keyPath: '',
+
+    // path to ssl cert (can be same file as key)
+    certPath: '',
+
+    // ssl key passphrase
+    passphrase: '',
   }
 };
