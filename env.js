@@ -100,7 +100,7 @@ module.exports = {
     // path to ssl cert (can be same file as key)
     certPath: '',
 
-    // ssl key passphrase
+    // ssl key passphrase; remove field if not needed
     passphrase: '',
   }
 };
