@@ -93,6 +93,7 @@ module.exports = {
     }
   },
 
+  // if this section is missing, https won't be configured
   ssl: {
     // path to ssl key (can be same file as cert)
     keyPath: '',
