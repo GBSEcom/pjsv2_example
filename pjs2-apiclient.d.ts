@@ -3,8 +3,8 @@ export declare type CardConnectCredentials = {
     readonly merchantId: string;
     readonly apiUserAndPass: string;
 };
-export declare type FirstApiCredentials = {
-    readonly gateway: "PAYEEZY" | "IPG_NA" | "RAPID_CONNECT";
+export declare type PayeezyCredentials = {
+    readonly gateway: "PAYEEZY";
     readonly apiKey: string;
     readonly apiSecret: string;
     readonly authToken: string;
@@ -15,7 +15,12 @@ export declare type BluepayCredentials = {
     readonly accountId: string;
     readonly secretKey: string;
 };
-export declare type GatewayCredentials = FirstApiCredentials | BluepayCredentials | CardConnectCredentials;
+export declare type IPGCredentials = {
+    readonly gateway: "IPG";
+    readonly apiKey: string;
+    readonly apiSecret: string;
+};
+export declare type GatewayCredentials = IPGCredentials | PayeezyCredentials | BluepayCredentials | CardConnectCredentials;
 export declare type ClientAuthRequest = {
     readonly credentials: GatewayCredentials;
     readonly clientIp: string;

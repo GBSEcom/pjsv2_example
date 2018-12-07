@@ -37,7 +37,13 @@ module.exports = {
         // maps to the "ta_token" payload property for "Tokenize Credit Card"
         // in payeezy api
         transarmorToken: '',
-      }
+      },
+
+      IPG: {
+        gateway: 'IPG',
+        apiKey: '',
+        apiSecret: '',
+      },
     },
 
     prod: {
@@ -77,7 +83,13 @@ module.exports = {
         // maps to the "ta_token" payload property for "Tokenize Credit Card"
         // in payeezy api
         transarmorToken: '',
-      }
+      },
+
+      IPG: {
+        gateway: 'IPG',
+        apiKey: '',
+        apiSecret: '',
+      },
     }
   },
 
