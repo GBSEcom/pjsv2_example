@@ -20,7 +20,7 @@ const makeHtmlPlugin = (env) => {
   return new HtmlWebpackPlugin(cfg);
 };
 
-const clientPlugins = ['uat', 'prod'].map(makeHtmlPlugin);
+const clientPlugins = ['stg', 'qa', 'uat', 'prod'].map(makeHtmlPlugin);
 clientPlugins.push(
     new CopyWebpackPlugin([
       { from: 'src/client/css', to: path.join(__dirname, 'build/public/css') },

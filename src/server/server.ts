@@ -5,8 +5,6 @@ import * as http from 'http';
 import logger from 'morgan';
 import { getRouter } from './routes';
 
-const debug = require('debug')('firstdata:server');
-
 function normalizePort(val: any) {
   const port2 = parseInt(val, 10);
 
@@ -25,7 +23,7 @@ function normalizePort(val: any) {
 
 export function makeServer() {
   const app: Application = express();
-  const port = normalizePort(process.env.PORT || '3000');
+  const port = normalizePort(process.env.PORT || '8080');
 
   app.use(logger("dev"));
   app.use(express.json());
@@ -74,7 +72,7 @@ export function makeServer() {
   return () => server.listen(port, () => {
     const addr = server.address();
     const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-    debug('Listening on ' + bind);
+    console.log('Listening on ' + bind);
   });
 }
 

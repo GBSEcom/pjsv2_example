@@ -90,6 +90,8 @@ const tokenizeWebhookEndpoint = (req: Request, res: Response) => {
 
 export const getRouter = () => {
   const router: Router = Router();
+  router.get("/stg", getHomePageFn("stg"));
+  router.get("/qa", getHomePageFn("qa"));
   router.get("/uat", getHomePageFn("uat"));
   router.get("/prod", getHomePageFn("prod"));
   router.get("/api/clear-cache", clearCache);

@@ -52,6 +52,14 @@ module.exports = {
   },
 
   pjs2: {
+    stg: {
+      apiKey: '',
+      apiSecret: '',
+    },
+    qa: {
+      apiKey: '',
+      apiSecret: '',
+    },
     uat: {
       apiKey: '',
       apiSecret: '',
