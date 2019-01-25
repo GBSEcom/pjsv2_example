@@ -1,5 +1,17 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import {polyfill} from 'es6-promise';
 import { addClass, removeClass } from './dom';
+import {
+  ConsumerFn, ICssClassList, ICssStyleList,
+  IFailureResult, IFields,
+  IPaymentForm,
+  IPaymentFormHooks, ISessionAuth, IStateConfig,
+  ITokenizeSuccess,
+  TokenizeResult,
+} from '../../sdk/types';
+import { CustomEvents } from '../../sdk/constants';
+
+polyfill();
 
 const getEl = (selector) => window.document.querySelector(selector);
 const ccFields = window.document.getElementsByClassName('payment-fields');
@@ -15,48 +27,51 @@ const getStateBtn = getEl('[data-getState-btn]');
 const gatewaySelect = getEl('[data-gateway]');
 const zauthCheck = getEl('[data-zauth]');
 const envNameElem = getEl('#pjs2env');
+
+const consoleLog = (data: any) =>
+  console.log(JSON.stringify(data));
+
 const enablePaymentFields = () => {
   for (let i = 0; i < ccFields.length; i++) {
     removeClass(ccFields[i], 'disabled');
   }
 };
 
-const isBtnDisabled = (btnState: any) => {
-  submitBtn.disabled = btnState;
+const setButtonLoaderDisplayState = (state: boolean) => {
+  btnLoader.style.display = ( state ? 'inline-block' : 'none' );
 };
-const isBtnLoaderDisplayed = (state: any) => {
-  const style = state ? 'inline-block' : 'none';
-  btnLoader.style.display = style;
-};
+
 const enableForm = () => {
   overlay.style.opacity = '0';
   setTimeout(() => {
     overlay.parentNode.removeChild(overlay);
-    isBtnDisabled(false);
+    submitBtn.disabled = false;
     enablePaymentFields();
     removeClass(submitBtn, 'disabled-bkg');
   }, 1000);
 };
+
 const removeSubmitState = () => {
-  isBtnDisabled(false);
-  isBtnLoaderDisplayed(false);
+  submitBtn.disabled = false;
+  setButtonLoaderDisplayState(false);
 };
+
 const setSubmitState = () => {
   statusMsg.style.opacity = '0';
-  isBtnDisabled(true);
-  isBtnLoaderDisplayed(true);
+  submitBtn.disabled = true;
+  setButtonLoaderDisplayState(true);
 };
 
 const isErrorMessage = (res: any, title: string) => {
   if (res && res.error) {
     statusMsg.style.opacity = '1';
     removeSubmitState();
-    if (res.message) {
-      statusMsg.innerHTML = res.message;
+    if (res.reason) {
+      statusMsg.innerHTML = res.reason;
     } else if (res.status > 1) {
       statusMsg.innerHTML = `${title} Error: ${res.status}`;
     } else {
-      console.log(res);
+      consoleLog(res);
     }
     throw new Error(`${title} Error`);
   } else {
@@ -64,28 +79,42 @@ const isErrorMessage = (res: any, title: string) => {
   }
 };
 
-const reset = () => {
-  window.firstdata.paymentFields.reset().then((res: any) => {
-    console.log(res);
-  });
-};
+const reset = (paymentForm: IPaymentForm) => paymentForm.reset(consoleLog);
 
-const fmtClientTokenReq = (zeroDollarAuth: boolean, gateway: string) => ({
-  headers: { 'Content-Type': 'application/json' },
+const reqHeaders = { 'Content-Type': 'application/json' };
+
+const fmtSessionReq = (zeroDollarAuth: boolean, gateway: string) => ({
+  headers: reqHeaders,
   url: '/api/authorize-client',
   method: 'POST',
   data: { env: envNameElem.value, gateway, zeroDollarAuth },
 });
 
 const fmtGetWebhookResponseReq = (clientToken: string) => ({
-  headers: { 'Content-Type': 'application/json' },
+  headers: reqHeaders,
   url: `/api/tokenize-status/${clientToken}`,
   method: 'GET',
 });
 
-const requestClientToken = () =>
-  axios(fmtClientTokenReq(zauthCheck.checked, gatewaySelect.options[gatewaySelect.selectedIndex].value))
-    .then((res: AxiosResponse) => isErrorMessage(res.data, 'Authorize Client'));
+const requestSession = (cb: ConsumerFn<ISessionAuth>) =>
+  axios(fmtSessionReq(zauthCheck.checked, gatewaySelect.options[gatewaySelect.selectedIndex].value))
+    .then((res: AxiosResponse) => isErrorMessage(res.data, 'Authorize Client'))
+    .then(cb)
+    .catch((err: AxiosError) => {
+      statusMsg.style.opacity = '1';
+      removeSubmitState();
+      if (err.response) {
+        if (err.response.data && err.response.data.error) {
+          statusMsg.innerHTML = `${err.response.data.error}: HTTP ${err.response.status}`;
+        } else {
+          statusMsg.innerHTML = `Unknown session error: HTTP 500`;
+          statusMsg.innerHTML = `Unknown session error: HTTP ${err.response.status}`;
+        }
+      } else {
+        statusMsg.innerHTML = `Unknown session error: HTTP 500`;
+      }
+      throw new Error("Session Authorization Error");
+    });
 
 const onNewTransaction = () => {
   getEl('[data-new-trans]').addEventListener('click', (e) => {
@@ -95,15 +124,21 @@ const onNewTransaction = () => {
   });
 };
 
+const delay = (milli: number, v?: any) => {
+  return new Promise<any>((resolve) => {
+    setTimeout(resolve.bind(null, v), milli);
+  });
+};
+
 const getWebhookResponse = (clientToken: string) =>
   axios(fmtGetWebhookResponseReq(clientToken))
     .then((res: AxiosResponse) => isErrorMessage(res.data, 'Webhook'));
 
 const tryGetWebhookResponseHelper = (clientToken: string, maxAttempts: number, currentAttempt: number) => {
   if (currentAttempt < maxAttempts) {
-    return getWebhookResponse(clientToken).catch((error: Error) => {
+    return delay(300).then(() => getWebhookResponse(clientToken).catch((error: Error) => {
       return tryGetWebhookResponseHelper(clientToken, maxAttempts, currentAttempt + 1);
-    });
+    }));
   }
   return getWebhookResponse(clientToken)
 };
@@ -111,176 +146,179 @@ const tryGetWebhookResponseHelper = (clientToken: string, maxAttempts: number, c
 const tryGetWebhookResponse = (clientToken: string) =>
   tryGetWebhookResponseHelper(clientToken, 3, 1);
 
-const displayTransactionMsg = (res: any, clientToken: string) => {
-  if (res.status !== 1) {
+const displayTransactionMsg = (paymentForm: IPaymentForm, res: any, clientToken: string) => {
+  if (res.error) {
     throw new Error('error completing transaction');
   } else {
     addClass(submitBtn, 'success-bkg');
     setTimeout(() => {
+      const responseLink = `<a href="/api/responses/${clientToken}" target="_blank">view response</a>`;
       statusMsg.style.opacity = '1';
       addClass(statusMsg, 'success');
       statusMsg.innerHTML =
-        'Transaction Complete (clientToken={' + clientToken + '}) <br><button class="btn--secondary" data-new-trans>New Transaction</button>';
+        `Transaction Complete (${responseLink}) <br><button class="btn--secondary" data-new-trans>New Transaction</button>`;
       removeClass(submitBtn, 'success-bkg');
       cardType.innerHTML = '';
       removeSubmitState();
       form.style.display = 'none';
-      reset();
+      reset(paymentForm);
       onNewTransaction();
     }, 1500);
     return res;
   }
 };
 
-const tokenize = (clientToken: any) => {
-  if (!clientToken) {
-    throw new Error('clientToken not set');
-  } else {
-    return window.firstdata.paymentFields.tokenize(clientToken).then((res: any) => isErrorMessage(res, 'Tokenize'));
-  }
+const tokenize = (paymentForm: IPaymentForm): Promise<TokenizeResult> => {
+  return new Promise<TokenizeResult>((resolve: ConsumerFn<TokenizeResult>) => {
+    paymentForm.tokenize(resolve);
+  });
 };
 
-const isFormValid = () => {
-  return window.firstdata.paymentFields
-    .isFormValid()
-    .then((res: any) => {
-      if (res.error) {
-        throw new Error('form not valid')
-      }
-      return true;
-    });
-};
-
-const trySubmit = () => {
+const trySubmit = (paymentForm: IPaymentForm) => {
   let clientToken: string = '';
-  requestClientToken()
-    .then((res: any) => {
-      clientToken = res.clientToken;
-      return clientToken;
+  tokenize(paymentForm)
+    .then((result: TokenizeResult) => isErrorMessage(result, "Tokenize"))
+    .then((result: ITokenizeSuccess) => {
+      clientToken = result.clientToken;
+      return tryGetWebhookResponse(clientToken);
     })
-    .then(tokenize)
-    .then(() => tryGetWebhookResponse(clientToken))
-    .then((res: any) => displayTransactionMsg(res, clientToken));
+    .then((res: any) => displayTransactionMsg(paymentForm, res, clientToken));
 };
 
-const onSubmit = () => {
+const onSubmit = (paymentForm: IPaymentForm) => {
   form.addEventListener('submit', (e: any) => {
     e.preventDefault();
-    isFormValid()
-      .then(setSubmitState)
-      .then(trySubmit)
-      .catch(error => {
+    if (paymentForm.isValid()) {
+      try {
+        setSubmitState();
+        trySubmit(paymentForm);
+      } catch (error) {
         removeSubmitState();
-        console.log(error);
-      });
+        consoleLog(error.toString());
+      }
+    } else {
+      removeSubmitState();
+      consoleLog('form not valid');
+    }
   });
 };
-const onReset = () => {
+
+const onReset = (paymentForm: IPaymentForm) => {
   resetBtn.addEventListener('click', (e: any) => {
     e.preventDefault();
-    reset();
+    reset(paymentForm);
   });
 };
-const onDestroy = () => {
+
+const onDestroy = (paymentForm: IPaymentForm) => {
   destroyBtn.addEventListener('click', (e: any) => {
     e.preventDefault();
-    window.firstdata.paymentFields
-      .destroy()
-      .then((res: any) => {
-        console.log(res);
-      })
-      .catch((error: any) => {
-        console.log(error);
-      });
+    paymentForm.destroy(consoleLog);
   });
 };
-const onGetState = () => {
+
+const onGetState = (paymentForm: IPaymentForm) => {
   getStateBtn.addEventListener('click', (e: any) => {
     e.preventDefault();
-    window.firstdata.paymentFields.getState().then((res: any) => {
-      console.log('get state', res);
-    });
+    paymentForm.getState(consoleLog);
   });
 };
-const onCardType = () => {
-  window.firstdata.paymentFields.on('cardType', (res: any) => {
+
+const onCardType = (paymentForm: IPaymentForm) => {
+  paymentForm.on(CustomEvents.CARD_TYPE, (res: any) => {
     cardType.innerHTML = res.brandNiceType ? `with ${res.brandNiceType}` : '';
   });
 };
-const formReady = () => {
-  enableForm();
-  onSubmit();
-  onReset();
-  onCardType();
-  onDestroy();
-  onGetState();
-};
-window.firstdata.paymentFields
-  .create({
-    styles: {
+
+const getStateConfig = (): IStateConfig => {
+  const styles: ICssStyleList = {
+    input: {
+      'font-size': '16px',
+      color: '#00a9e0',
+      'font-family': 'monospace',
+      background: 'black',
+    },
+    '.card': {
+      'font-family': 'monospace',
+    },
+    ':focus': {
+      color: '#00a9e0',
+    },
+    '.valid': {
+      color: '#43B02A',
+    },
+    '.invalid': {
+      color: '#C01324',
+    },
+    '@media screen and (max-width: 700px)': {
       input: {
-        'font-size': '16px',
-        color: '#00a9e0',
-        'font-family': 'monospace',
-        background: 'black',
-      },
-      '.card': {
-        'font-family': 'monospace',
-      },
-      ':focus': {
-        color: '#00a9e0',
-      },
-      '.valid': {
-        color: '#43B02A',
-      },
-      '.invalid': {
-        color: '#C01324',
-      },
-      '@media screen and (max-width: 700px)': {
-        input: {
-          'font-size': '18px',
-        },
-      },
-      'input:-webkit-autofill': {
-        '-webkit-box-shadow': '0 0 0 50px white inset',
-      },
-      'input:focus:-webkit-autofill': {
-        '-webkit-text-fill-color': '#00a9e0',
-      },
-      'input.valid:-webkit-autofill': {
-        '-webkit-text-fill-color': '#43B02A',
-      },
-      'input.invalid:-webkit-autofill': {
-        '-webkit-text-fill-color': '#C01324',
-      },
-      'input::placeholder': {
-        color: '#aaa',
+        'font-size': '18px',
       },
     },
-    classes: {
-      empty: 'empty',
-      focus: 'focus',
-      invalid: 'invalid',
-      valid: 'valid',
+    'input:-webkit-autofill': {
+      '-webkit-box-shadow': '0 0 0 50px white inset',
     },
-    fields: {
-      name: {
-        selector: '[data-cc-name]',
-        placeholder: 'Full Name',
-      },
-      card: {
-        selector: '[data-cc-card]',
-      },
-      cvv: {
-        selector: '[data-cc-cvv]',
-      },
-      exp: {
-        selector: '[data-cc-exp]',
-      },
+    'input:focus:-webkit-autofill': {
+      '-webkit-text-fill-color': '#00a9e0',
     },
+    'input.valid:-webkit-autofill': {
+      '-webkit-text-fill-color': '#43B02A',
+    },
+    'input.invalid:-webkit-autofill': {
+      '-webkit-text-fill-color': '#C01324',
+    },
+    'input::placeholder': {
+      color: '#aaa',
+    },
+  };
+
+  const classes: ICssClassList = {
+    empty: 'empty',
+    focus: 'focus',
+    invalid: 'invalid',
+    valid: 'valid',
+  };
+
+  const fields: IFields = {
+    card: {
+      selector: '[data-cc-card]',
+    },
+    cvv: {
+      selector: '[data-cc-cvv]',
+    },
+    exp: {
+      selector: '[data-cc-exp]',
+    },
+    name: {
+      selector: '[data-cc-name]',
+      placeholder: 'Full Name',
+    },
+  };
+
+  return { classes, fields, styles };
+};
+
+const createAsync = (config: IStateConfig, hooks: IPaymentFormHooks): Promise<IPaymentForm> => {
+  const logger = (level: string, msg: string) => console.log(msg);
+  return new Promise<IPaymentForm>((resolve: ConsumerFn<IPaymentForm>, reject: ConsumerFn<IFailureResult>) => {
+    window.firstdata.createPaymentForm(config, hooks, (result: IPaymentForm|IFailureResult) => {
+        if ("error" in result) {
+          reject(result);
+        } else {
+          resolve(result);
+        }
+      }, logger);
   })
+};
+
+createAsync(getStateConfig(), { preFlowHook: requestSession })
   .then((res: any) => isErrorMessage(res, 'Create Fields'))
-  .then(formReady)
-  .catch((error: any) => {
-    console.log(error);
-  });
+  .then((paymentForm: IPaymentForm) => {
+    enableForm();
+    onSubmit(paymentForm);
+    onReset(paymentForm);
+    onCardType(paymentForm);
+    onDestroy(paymentForm);
+    onGetState(paymentForm);
+  })
+  .catch(consoleLog);

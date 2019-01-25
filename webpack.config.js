@@ -2,27 +2,25 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const nodeExternals = require('webpack-node-externals');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const pjs2 = require('./pjs2-apiclient');
+const envData = require('./env');
 
 const makeHtmlPlugin = (env) => {
-  return new HtmlWebpackPlugin({
+  const cfg = {
     inject: 'body',
-    filename: path.join(__dirname, 'build/public/index.' + env + '.html'),
-    template: 'src/client/index.html',
-    minify: {
-      collapseWhitespace: true,
-      conservativeCollapse: true,
-      removeComments: true,
-      removeRedundantAttributes: true,
-      removeEmptyAttributes: true,
-    },
-    API_URL: pjs2.ApiEndpoints[env.toString().toUpperCase()] + '/',
-    VERSION: '2.0.0',
-    PJS2_ENV: env
-  });
+  };
+
+  cfg.filename = path.join(__dirname, 'build/public/index.' + env + '.html');
+  cfg.template = 'src/client/index.html';
+  cfg.chunks = ['vendor', 'common', 'pjs2'];
+
+  cfg.CONTENT_URL = `https://docs.paymentjs.firstdata.com/v2/lib/${env}`;
+  cfg.VERSION = '2.0.0';
+  cfg.PJS2_ENV = env;
+
+  return new HtmlWebpackPlugin(cfg);
 };
 
-const clientPlugins = ['local', 'dev', 'stg', 'test', 'cert', 'prod'].map(makeHtmlPlugin);
+const clientPlugins = ['uat', 'prod'].map(makeHtmlPlugin);
 clientPlugins.push(
     new CopyWebpackPlugin([
       { from: 'src/client/css', to: path.join(__dirname, 'build/public/css') },
@@ -47,11 +45,11 @@ const frontend = {
   devtool: common.devtool,
   context: common.context,
   entry: {
-    app: [path.resolve(__dirname, 'src/client/index.ts')],
+    pjs2: [path.resolve(__dirname, 'src/client/index.ts')],
   },
   output: {
     path: path.join(__dirname, 'build/public/js'),
-    filename: '[id].js',
+    filename: '[name].[id].js',
     publicPath: '/public/js',
   },
   resolve: {
@@ -71,11 +69,6 @@ const frontend = {
         exclude: [path.resolve(__dirname, 'src/server')]
       }
     ],
-  },
-  optimization: {
-    splitChunks: {
-      chunks: 'all',
-    },
   },
   plugins: clientPlugins,
 };
