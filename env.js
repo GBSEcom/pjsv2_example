@@ -53,7 +53,10 @@ module.exports = {
 
   pjs2: {
     stg: {
+      // Apigee Consumer Key
       apiKey: '',
+
+      // Apigee Consumer Secret
       apiSecret: '',
     },
     qa: {
