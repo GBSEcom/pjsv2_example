@@ -11,3 +11,4 @@ env: "stg", "qa", "uat", "prod"
 
 Gateway and PaymentJS2 developer app credentials are stored in env.js
 
+Note: changes to env.js require rebuilding
