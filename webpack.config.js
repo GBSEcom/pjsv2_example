@@ -30,8 +30,8 @@ clientPlugins.push(
 );
 
 const common = {
-  devtool: false,
-  mode: 'production',
+  devtool: 'inline-source-map',
+  mode: 'development',
   resolve: {
     extensions: ['.js', '.ts'],
     modules: [path.resolve(__dirname), 'node_modules'],
