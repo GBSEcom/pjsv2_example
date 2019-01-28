@@ -136,7 +136,7 @@ const getWebhookResponse = (clientToken: string) =>
 
 const tryGetWebhookResponseHelper = (clientToken: string, maxAttempts: number, currentAttempt: number) => {
   if (currentAttempt < maxAttempts) {
-    return delay(300).then(() => getWebhookResponse(clientToken).catch((error: Error) => {
+    return delay(1000).then(() => getWebhookResponse(clientToken).catch((error: Error) => {
       return tryGetWebhookResponseHelper(clientToken, maxAttempts, currentAttempt + 1);
     }));
   }
