@@ -1,14 +1,14 @@
 {
   "name": "firstdata",
   "version": "2.0.0",
-  "description": "Merchant PaymentJS Demo",
+  "description": "Merchant PaymentJSv2 Demo",
   "main": "build/server.bundle.js",
-  "author": "Brandon Garcia <brandon.garcia@firstdata.com>",
+  "author": "Garcia, Brandon <Brandon.Garcia@firstdata.com>",
   "contributors": [
-    "Aaron Brownell <aaron.brownell@firstdata.com>",
-    "Brandon Garcia <brandon.garcia@firstdata.com>"
+    "Brownell, Aaron <Aaron.Brownell@firstdata.com>",
+    "Garcia, Brandon <Brandon.Garcia@firstdata.com>"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "engine": "node >= 8.9.4",
   "scripts": {
     "start": "node build/server.bundle.js",
