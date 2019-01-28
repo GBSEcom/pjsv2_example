@@ -144,7 +144,7 @@ const tryGetWebhookResponseHelper = (clientToken: string, maxAttempts: number, c
 };
 
 const tryGetWebhookResponse = (clientToken: string) =>
-  tryGetWebhookResponseHelper(clientToken, 3, 1);
+  tryGetWebhookResponseHelper(clientToken, 10, 1);
 
 const displayTransactionMsg = (paymentForm: IPaymentForm, res: any, clientToken: string) => {
   if (res.error) {
