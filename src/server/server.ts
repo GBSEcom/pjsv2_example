@@ -22,14 +22,12 @@ function normalizePort(val: any) {
 
 export function makeServer() {
   const app: Application = express();
-  const port = normalizePort(process.env.PORT || '8080');
-
+  app.disable("x-powered-by");
   app.use(logger("dev"));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use('/public', express.static("build/public"));
   app.use('/favicon.ico', express.static('build/public/favicon.ico'));
-
   app.use("/", getRouter());
 
   // error handler
@@ -42,6 +40,7 @@ export function makeServer() {
     res.status(err.status || 500).end();
   });
 
+  const port = normalizePort(process.env.PORT || '3000');
   app.set('port', port);
 
   const server = http.createServer(app);

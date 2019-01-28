@@ -1,4 +1,4 @@
-import { CustomEvents, FieldName, GatewayEnum } from "./constants";
+import { CustomEventName, FieldName, GatewayName } from "./constants";
 export declare type ConsumerFn<T> = (data: T) => void;
 export declare type BiConsumerFn<A, B> = (first: A, second: B) => void;
 export interface ICssClassList {
@@ -46,25 +46,25 @@ export interface IMerchantClient {
     authorizeSession(reqData: IAuthorizeSessionRequest): Promise<ISessionAuth>;
 }
 export interface IBluepayCredentials {
-    readonly gateway: GatewayEnum.BLUEPAY;
+    readonly gateway: GatewayName.BLUEPAY;
     readonly accountId: string;
     readonly secretKey: string;
     readonly zeroDollarAuth: boolean;
 }
 export interface ICardConnectCredentials {
-    readonly gateway: GatewayEnum.CARD_CONNECT;
+    readonly gateway: GatewayName.CARD_CONNECT;
     readonly merchantId: string;
     readonly apiUserAndPass: string;
     readonly zeroDollarAuth: boolean;
 }
 export interface IIPGCredentials {
-    readonly gateway: GatewayEnum.IPG;
+    readonly gateway: GatewayName.IPG;
     readonly apiKey: string;
     readonly apiSecret: string;
     readonly zeroDollarAuth: boolean;
 }
 export interface IPayeezyCredentials {
-    readonly gateway: GatewayEnum.PAYEEZY;
+    readonly gateway: GatewayName.PAYEEZY;
     readonly apiKey: string;
     readonly apiSecret: string;
     readonly authToken: string;
@@ -197,7 +197,7 @@ export interface IPaymentForm {
      *    console.log(res.brandNiceType);
      *  });
      */
-    on(type: CustomEvents, callback: FieldEventHandlerCallback): void;
+    on(type: CustomEventName, callback: FieldEventHandlerCallback): void;
     /**
      * @function reset
      * @memberof window.firstdata.paymentFields

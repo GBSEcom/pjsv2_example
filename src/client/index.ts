@@ -9,7 +9,7 @@ import {
   ITokenizeSuccess,
   TokenizeResult,
 } from '../../sdk/types';
-import { CustomEvents } from '../../sdk/constants';
+import { CustomEventName } from '../../sdk/constants';
 
 polyfill();
 
@@ -225,7 +225,7 @@ const onGetState = (paymentForm: IPaymentForm) => {
 };
 
 const onCardType = (paymentForm: IPaymentForm) => {
-  paymentForm.on(CustomEvents.CARD_TYPE, (res: any) => {
+  paymentForm.on(CustomEventName.CARD_TYPE, (res: any) => {
     cardType.innerHTML = res.brandNiceType ? `with ${res.brandNiceType}` : '';
   });
 };

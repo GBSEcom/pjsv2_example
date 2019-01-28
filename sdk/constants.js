@@ -1,24 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var ServiceUrls;
-(function (ServiceUrls) {
-    ServiceUrls["STG"] = "https://dev.api.firstdata.com/paymentjs/v2";
-    ServiceUrls["QA"] = "https://qa.api.firstdata.com/paymentjs/v2";
-})(ServiceUrls = exports.ServiceUrls || (exports.ServiceUrls = {}));
-var GatewayEnum;
-(function (GatewayEnum) {
-    GatewayEnum["BLUEPAY"] = "BLUEPAY";
-    GatewayEnum["CARD_CONNECT"] = "CARD_CONNECT";
-    GatewayEnum["IPG"] = "IPG";
-    GatewayEnum["PAYEEZY"] = "PAYEEZY";
-})(GatewayEnum = exports.GatewayEnum || (exports.GatewayEnum = {}));
-var CustomEvents;
-(function (CustomEvents) {
-    CustomEvents["BLUR"] = "blur";
-    CustomEvents["CARD_TYPE"] = "cardType";
-    CustomEvents["CHANGE"] = "change";
-    CustomEvents["FOCUS"] = "focus";
-})(CustomEvents = exports.CustomEvents || (exports.CustomEvents = {}));
+var ServiceUrl;
+(function (ServiceUrl) {
+    ServiceUrl["STG"] = "https://dev.api.firstdata.com/paymentjs/v2";
+    ServiceUrl["QA"] = "https://qa.api.firstdata.com/paymentjs/v2";
+})(ServiceUrl = exports.ServiceUrl || (exports.ServiceUrl = {}));
+var GatewayName;
+(function (GatewayName) {
+    GatewayName["BLUEPAY"] = "BLUEPAY";
+    GatewayName["CARD_CONNECT"] = "CARD_CONNECT";
+    GatewayName["IPG"] = "IPG";
+    GatewayName["PAYEEZY"] = "PAYEEZY";
+})(GatewayName = exports.GatewayName || (exports.GatewayName = {}));
+var CustomEventName;
+(function (CustomEventName) {
+    CustomEventName["BLUR"] = "blur";
+    CustomEventName["CARD_TYPE"] = "cardType";
+    CustomEventName["CHANGE"] = "change";
+    CustomEventName["FOCUS"] = "focus";
+})(CustomEventName = exports.CustomEventName || (exports.CustomEventName = {}));
 var FieldName;
 (function (FieldName) {
     FieldName["NAME"] = "name";
@@ -26,3 +26,10 @@ var FieldName;
     FieldName["CVV"] = "cvv";
     FieldName["EXP"] = "exp";
 })(FieldName = exports.FieldName || (exports.FieldName = {}));
+var EnvName;
+(function (EnvName) {
+    EnvName["STG"] = "stg";
+    EnvName["QA"] = "qa";
+    EnvName["UAT"] = "uat";
+    EnvName["PROD"] = "prod";
+})(EnvName = exports.EnvName || (exports.EnvName = {}));
