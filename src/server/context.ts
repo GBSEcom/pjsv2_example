@@ -29,7 +29,7 @@ function getPjsConfigForEnv(env: EnvName): any|never {
   if (envData.pjs2[env]) {
     return envData.pjs2[env];
   }
-  throw new Error(`unsupported env "${env}"`);
+  throw new Error(`missing developer app credentials for env "${env}"`);
 }
 
 function getApiClientForEnv(env: EnvName): IMerchantClient|never {
@@ -40,7 +40,7 @@ function getApiClientForEnv(env: EnvName): IMerchantClient|never {
     };
     return new MerchantClient(ServiceUrls[ENV_NAME], logger);
   }
-  throw new Error(`unsupported env "${env}"`);
+  throw new Error(`missing service url for env "${env}"`);
 }
 
 export class Context {
