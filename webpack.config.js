@@ -49,7 +49,7 @@ const frontend = {
   },
   output: {
     path: path.join(__dirname, 'build/public/js'),
-    filename: '[name].[id].js',
+    filename: '[name].js',
     publicPath: '/public/js',
   },
   resolve: {
@@ -82,7 +82,7 @@ const backend = {
   },
   output: {
     path: path.join(__dirname, 'build/'),
-    filename: 'server.bundle.js',
+    filename: 'server.js',
   },
   resolve: common.resolve,
   externals: [
