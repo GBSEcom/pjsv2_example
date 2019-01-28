@@ -2,27 +2,12 @@
 
 ## Getting Started
 
-Node Version
-~~~
-nvm use v8.9.4
-~~~
+npm install
+npm run build
+npm start
 
-Install packages.
-~~~
-yarn install
-~~~
+URL: http://localhost:8080/{env}
+env: "stg", "qa", "uat", "prod"
 
-Compile Frontend
-~~~
-yarn buildDev
-~~~
+Gateway and PaymentJS2 developer app credentials are stored in env.js
 
-Start Server
-~~~
-yarn start
-~~~
-
-Merchant URL
-~~~
-https://merchant.local:3001/
-~~~
