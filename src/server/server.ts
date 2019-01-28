@@ -1,4 +1,3 @@
-import cookieParser from 'cookie-parser';
 import express from 'express';
 import {Application} from 'express';
 import * as http from 'http';
@@ -28,7 +27,6 @@ export function makeServer() {
   app.use(logger("dev"));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-  app.use(cookieParser());
   app.use('/public', express.static("build/public"));
   app.use('/favicon.ico', express.static('build/public/favicon.ico'));
 
