@@ -1,4 +1,3 @@
-import cors from "cors";
 import { Request, Response, Router } from "express";
 import * as path from "path";
 import { GatewayEnum } from "../../sdk/constants";
@@ -98,11 +97,9 @@ export const getRouter = () => {
   router.get("/api/responses/:clientToken", getTokenizeResponse);
   router.post("/api/tokenize-webhook", tokenizeWebhookEndpoint);
 
-  router.options("/api/authorize-client", cors);
-  router.post("/api/authorize-client", cors, authorizeClientEndpoint);
+  router.post("/api/authorize-client", authorizeClientEndpoint);
 
-  router.options("/api/tokenize-status/:clientToken", cors);
-  router.get("/api/tokenize-status/:clientToken", cors, checkTokenizeStatusEndpoint);
+  router.get("/api/tokenize-status/:clientToken", checkTokenizeStatusEndpoint);
 
   return router;
 };
