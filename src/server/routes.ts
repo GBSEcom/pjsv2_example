@@ -41,18 +41,16 @@ const getTokenizeResponse = (req: Request, res: Response) => {
 const checkTokenizeStatusEndpoint = (req: Request, res: Response) => {
   const clientToken = req.params.clientToken;
   if (responseCache.has(clientToken)) {
-    res.json({ message: "Token received by webhook.", status: 1 });
+    res.json({ error: false });
   } else if (requestCache.has(clientToken)) {
     res.json({
       error: true,
-      message: 'Token not received by webhook.',
-      status: 0,
+      reason: 'Token not received by webhook.',
     });
   } else {
     res.json({
       error: true,
-      message: 'Unrecognized clientToken. The authorize-client request may not have taken place',
-      status: 0,
+      reason: 'Unrecognized clientToken. The authorize-client request may not have taken place',
     });
   }
 };
@@ -82,7 +80,8 @@ const authorizeClientEndpoint = (req: Request, res: Response) => {
     .catch((err: any) => {
       console.log(`authorizeClient/FATAL - ${err.message||"EMPTY_ERROR"}`);
       res.status(500).json({
-        error: "Failed to authorize session",
+        error: true,
+        reason: "Failed to authorize session",
       });
     });
 };

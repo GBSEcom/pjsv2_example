@@ -66,12 +66,11 @@ const isErrorMessage = (res: any, title: string) => {
   if (res && res.error) {
     statusMsg.style.opacity = '1';
     removeSubmitState();
+    consoleLog(res);
     if (res.reason) {
       statusMsg.innerHTML = res.reason;
     } else if (res.status > 1) {
       statusMsg.innerHTML = `${title} Error: ${res.status}`;
-    } else {
-      consoleLog(res);
     }
     throw new Error(`${title} Error`);
   } else {
@@ -136,7 +135,7 @@ const getWebhookResponse = (clientToken: string) =>
 
 const tryGetWebhookResponseHelper = (clientToken: string, maxAttempts: number, currentAttempt: number) => {
   if (currentAttempt < maxAttempts) {
-    return delay(1000).then(() => getWebhookResponse(clientToken).catch((error: Error) => {
+    return delay(300).then(() => getWebhookResponse(clientToken).catch((error: Error) => {
       return tryGetWebhookResponseHelper(clientToken, maxAttempts, currentAttempt + 1);
     }));
   }
@@ -144,7 +143,7 @@ const tryGetWebhookResponseHelper = (clientToken: string, maxAttempts: number, c
 };
 
 const tryGetWebhookResponse = (clientToken: string) =>
-  tryGetWebhookResponseHelper(clientToken, 10, 1);
+  tryGetWebhookResponseHelper(clientToken, 3, 1);
 
 const displayTransactionMsg = (paymentForm: IPaymentForm, res: any, clientToken: string) => {
   if (res.error) {
