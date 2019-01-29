@@ -10,7 +10,7 @@ npm install
 npm run build
 npm start
 
-URL: http://localhost:8080/{env}
+URL: http://localhost:3000/{env}
 env: "stg", "qa", "uat", "prod"
 
 
