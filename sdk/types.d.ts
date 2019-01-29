@@ -143,81 +143,65 @@ export interface IPaymentFormHooks {
 }
 export interface IPaymentForm {
     /**
-     * @function destroy
-     * @memberof window.firstdata.paymentFields
      * @description removes iframes from dom.
-     * @returns {promise}
      * @example
      *
-     *  window.firstdata.paymentFields
-     *    .destroy().then((res)=> console.log(res));
+     *  paymentForm.destroy((result) => {
+     *    // ...
+     *  });
      */
     destroy(cb: ConsumerFn<{
         frames: IFrameStatus[];
         message: string;
     }>): void;
     /**
-     * @function getState
-     * @memberof window.firstdata.paymentFields
-     * @returns {promise}
+     * @description gets data on form validation state
      * @example
      *
-     *  window.firstdata.paymentFields.getState().then((res) => {
-     *      console.log(res);
-     *    });
+     *  paymentForm.getState((formValidity) => {
+     *    // ...
+     *  });
      */
     getState(cb: ConsumerFn<FormValidity>): void;
     isValid(): boolean;
     /**
-     * @function validate
-     * @memberof window.firstdata.paymentFields
-     * @returns {promise}
+     * @description validates form
      * @example
      *
-     *  window.firstdata.paymentFields
-     *    .validate()
-     *    .then((res) => {
-     *      if (res.error) {
-     *        throw new Error("form not valid");
-     *      } else {
-     *        return res;
-     *      }
-     *    })
+     *  paymentForm.validate((validationResult) => {
+     *    if (validationResult.error) {
+     *      throw new Error("form not valid");
+     *    } else {
+     *      // ...
+     *    }
+     *  });
      */
     validate(cb: ConsumerFn<ValidationResult>): void;
     /**
-     * @function on
      * @description custom user events
-     * @memberof window.firstdata.paymentFields
-     * @param {string} type focus|blur|change|cardType
-     * @param {callback} callback
      * @example
      *
-     *  window.firstdata.paymentFields.on("cardType", (res) => {
-     *    console.log(res.brandNiceType);
+     *  paymentForm.on("cardType", (res) => {
+     *    // ...
      *  });
      */
     on(type: CustomEventName, callback: FieldEventHandlerCallback): void;
     /**
-     * @function reset
-     * @memberof window.firstdata.paymentFields
      * @description resets payment field state and css behavioral classes.
-     * @returns {promise}
      * @example
      *
-     *  window.firstdata.paymentFields.reset().then((res) => {
-     *    console.log(res);
+     *  paymentForm.reset((result) => {
+     *    // ...
      *  });
      */
     reset(cb: ConsumerFn<IMessage>): void;
     /**
-     * @function client
-     * @memberof window.firstdata.paymentFields
-     * @returns {promise}
+     * @description submit card field values to PaymentJSv2 api for tokenization
      * @example
      *
-     *  window.firstdata.paymentFields
-     *    .client(clientToken).then((res)=> console.log(res));
+     *  paymentForm.tokenize((result) => {
+     *    // ...
+     *  });
      */
     tokenize(cb: ConsumerFn<TokenizeResult>): void;
 }
