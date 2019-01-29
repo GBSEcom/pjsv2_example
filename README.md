@@ -100,3 +100,100 @@ client
   .catch(handleError);
 ```
 
+## Client Library
+
+### Initializing the form
+
+```javascript
+
+const getFormConfig = () => {
+  // OPTIONAL
+  const styles = {
+    ".valid": {
+      color: "#43B02A",
+    },
+
+    ".invalid": {
+      color: "#C01324",
+    },
+  };
+
+  // OPTIONAL
+  const classes = {
+    empty: "empty",
+    focus: "focus",
+    invalid: "invalid",
+    valid: "valid",
+  };
+
+  const fields = {
+    card: {
+      selector: "[data-cc-card]",
+      placeholder: "Card Number", // OPTIONAL
+    },
+    cvv: {
+      selector: "[data-cc-cvv]",
+      placeholder: "Security Code", // OPTIONAL
+    },
+    exp: {
+      selector: "[data-cc-exp]",
+      placeholder: "Expires", // OPTIONAL
+    },
+    name: {
+      selector: "[data-cc-name]",
+      placeholder: "Cardholder Name", // OPTIONAL
+    }
+  };
+
+  return { classes, fields, styles };
+};
+
+// typescript:
+//    callback: (auth: ISessionAuth) => void
+const requestSession = (callback) => {
+  /* make api call to server side to request session auth data */
+  // ...
+  callback({
+    clientToken: responseData.clientToken,
+    publicKeyBase64: responseData.publicKeyBase64,
+  });
+};
+
+// typescript:
+//    config: IStateConfig
+//    hooks: IPaymentFormHooks
+const createForm = (config, hooks) => {
+  const logger = (level, msg) => console.log(msg); // optional
+  return new Promise((resolve, reject) => {
+    window.firstdata.createPaymentForm(config, hooks, (paymentFormOrError) => {
+      if ("error" in paymentFormOrError) {
+        reject(paymentFormOrError); // type is IFailureResult
+      } else {
+        resolve(paymentFormOrError); // type is IPaymentForm
+      }
+    }, logger);
+  });
+};
+
+const getSubmitHandler = (paymentForm) => {
+  return (event) => {
+    event.preventDefault();
+    if (paymentForm.isValid()) {
+      // typescript:
+      //    result: TokenizeResult
+      paymentForm.tokenize((result) => {
+        /* check server for webhook receipt then proceed */
+      });
+    }
+  };
+};
+
+createForm(getFormConfig(), { preFlowHook: requestSession })
+  .then((paymentForm) => { // typescript: IPaymentForm
+    const submitHandler = getSubmitHandler();
+    /* register submitHandler on form element */
+    /* perform any additional actions to initialize form state, see src/client/index.ts for an example */
+  });
+
+```
+
