@@ -13,7 +13,7 @@ const makeHtmlPlugin = (env) => {
   cfg.template = 'src/client/index.html';
   cfg.chunks = ['vendor', 'common', 'pjs2'];
 
-  cfg.CONTENT_URL = `https://docs.paymentjs.firstdata.com/v2/lib/${env}`;
+  cfg.CONTENT_URL = `https://docs.paymentjs.firstdata.com/lib/${env}`;
   cfg.VERSION = '2.0.0';
   cfg.PJS2_ENV = env;
 
