@@ -1,6 +1,8 @@
 export declare enum ServiceUrl {
     STG = "https://dev.api.firstdata.com/paymentjs/v2",
-    QA = "https://qa.api.firstdata.com/paymentjs/v2"
+    QA = "https://qa.api.firstdata.com/paymentjs/v2",
+    UAT = "https://cert.api.firstdata.com/paymentjs/v2",
+    PROD = "https://prod.api.firstdata.com/paymentjs/v2"
 }
 export declare enum GatewayName {
     BLUEPAY = "BLUEPAY",

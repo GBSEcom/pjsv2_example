@@ -99,8 +99,6 @@ const tokenizeWebhookEndpoint = (req: Request, res: Response) => {
 
 export const getRouter = () => {
   const router: Router = Router();
-  router.get(`/${EnvName.STG}`, getHomePageFn(EnvName.STG));
-  router.get(`/${EnvName.QA}`, getHomePageFn(EnvName.QA));
   router.get(`/${EnvName.UAT}`, getHomePageFn(EnvName.UAT));
   router.get(`/${EnvName.PROD}`, getHomePageFn(EnvName.PROD));
   router.get("/api/clear-cache", clearCache);

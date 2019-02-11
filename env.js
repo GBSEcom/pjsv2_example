@@ -52,19 +52,11 @@ module.exports = {
   },
 
   pjs2: {
-    stg: {
+    uat: {
       // Apigee Consumer Key
       apiKey: '',
 
       // Apigee Consumer Secret
-      apiSecret: '',
-    },
-    qa: {
-      apiKey: '',
-      apiSecret: '',
-    },
-    uat: {
-      apiKey: '',
       apiSecret: '',
     },
     prod: {
