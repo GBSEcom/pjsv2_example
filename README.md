@@ -12,7 +12,7 @@ https://docs.paymentjs.firstdata.com/v2
 
 URL: http://localhost:3000/{env}
 
-env:"stg", "qa", "uat", "prod"
+env: uat, prod
 
 
 ## Configuration
