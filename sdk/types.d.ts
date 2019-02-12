@@ -69,7 +69,7 @@ export interface IPayeezyCredentials {
     readonly apiSecret: string;
     readonly authToken: string;
     readonly transarmorToken?: string;
-    readonly zeroDollarAuth: string;
+    readonly zeroDollarAuth: boolean;
 }
 export declare type GatewayCredentials = IBluepayCredentials | ICardConnectCredentials | IPayeezyCredentials | IIPGCredentials;
 export interface IAuthorizeSessionRequest {
