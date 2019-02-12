@@ -1,5 +1,11 @@
 import { CustomEventName, FieldName, GatewayName } from "./constants";
 export declare type ConsumerFn<T> = (data: T) => void;
+export interface ICardData {
+    [FieldName.CARD]: string;
+    [FieldName.CVV]: string;
+    [FieldName.EXP]: string;
+    [FieldName.NAME]: string;
+}
 export declare type BiConsumerFn<A, B> = (first: A, second: B) => void;
 export interface ICssClassList {
     empty: string;
@@ -44,6 +50,7 @@ export interface ISessionAuth {
 }
 export interface IMerchantClient {
     authorizeSession(reqData: IAuthorizeSessionRequest): Promise<ISessionAuth>;
+    tokenizeCard(auth: ISessionAuth, data: ICardData): Promise<boolean>;
 }
 export interface IBluepayCredentials {
     readonly gateway: GatewayName.BLUEPAY;
