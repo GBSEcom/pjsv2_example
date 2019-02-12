@@ -2,7 +2,7 @@
 
 ## PaymentJSv2 Documentation
 
-https://docs.paymentjs.firstdata.com/v2
+https://docs.paymentjs.firstdata.com/
 
 ## Getting Started
 
