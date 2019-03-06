@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = require("axios");
 const crypto_1 = require("crypto");
-const NodeRSA = require("node-rsa");
 const js_base64_1 = require("js-base64");
+const NodeRSA = require("node-rsa");
 const constants_1 = require("./constants");
 const signMsg = (secret, msg) => crypto_1.createHmac("sha256", secret)
     .update(msg)
@@ -15,7 +15,7 @@ class MerchantClient {
     }
     authorizeSession(reqData) {
         this.log("debug", "entering authorizeSession");
-        const nonce = reqData.nonce || (new Date().getTime() + Math.random());
+        const nonce = `${reqData.nonce || (new Date().getTime() + Math.random())}`;
         const timestamp = reqData.timestamp || new Date().getTime();
         const msgSignature = reqData.msgSignature
             || signMsg(reqData.apiSecret, `${reqData.apiKey}${nonce}${timestamp}${JSON.stringify(reqData.gatewayConfig)}`);
@@ -35,7 +35,7 @@ class MerchantClient {
         };
         return this.sendRequest(httpParams)
             .then((response) => {
-            if (!response.data || !response.data.publicKeyBase64 || !response.headers["client-token"]) {
+            if (!response.data || !response.data.publicKeyBase64 || !response.headers["client-token"] || !response.headers["nonce"] || response.headers["nonce"] !== nonce) {
                 this.log("error", {
                     data: response.data,
                     headers: response.headers,
@@ -84,7 +84,7 @@ class MerchantClient {
     encrypt(data, publicKeyBase64) {
         const publicKey = js_base64_1.Base64.decode(publicKeyBase64);
         const keyObj = new NodeRSA(publicKey);
-        return keyObj.encrypt(data, 'base64');
+        return keyObj.encrypt(data, "base64");
     }
     sendRequest(config) {
         this.log("debug", "sending request");
