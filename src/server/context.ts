@@ -45,10 +45,6 @@ function getApiClientForEnv(env: EnvName): IMerchantClient|never {
 
 export class Context {
 
-  public static getLegacyConfig(): any {
-    return envData.pjs1;
-  }
-
   public static for(env: string|undefined): Context {
     if (isEnvName(env)) {
       const client: IMerchantClient = getApiClientForEnv(env);

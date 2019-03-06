@@ -6,13 +6,13 @@ import { EnvName, GatewayName } from '../../sdk/constants';
 
 const responseCache = new Map<string, object>();
 const requestCache = new Map<string, true>();
+const nonceCache = new Map<string, string>();
+
+const genNonce = () =>
+  `${(new Date().getTime() + Math.random())}`;
 
 const getHomePageFn = (env: EnvName) => {
   return (req: Request, res: Response) => res.sendFile(path.resolve(`./build/public/index.${env}.html`));
-};
-
-const getLegacyConfig = (req: Request, res: Response) => {
-  res.json(Context.getLegacyConfig());
 };
 
 const getHealth = (req: Request, res: Response) => {
@@ -20,9 +20,16 @@ const getHealth = (req: Request, res: Response) => {
   res.send("OK");
 };
 
+const clearCacheEntry = (clientToken: string) => {
+  responseCache.delete(clientToken);
+  requestCache.delete(clientToken);
+  //nonceCache.delete(clientToken); <- handled in webhook
+};
+
 const clearCache = (req: Request, res: Response) => {
   responseCache.clear();
   requestCache.clear();
+  nonceCache.clear();
   res.status(200);
   res.send();
 };
@@ -30,7 +37,9 @@ const clearCache = (req: Request, res: Response) => {
 const getTokenizeResponse = (req: Request, res: Response) => {
   const clientToken = req.params.clientToken;
   if (responseCache.has(clientToken)) {
-    res.json({ response: responseCache.get(clientToken) });
+    res.status(200);
+    res.send(JSON.stringify({ response: responseCache.get(clientToken) }, null, 2));
+    clearCacheEntry(clientToken);
   } else if (requestCache.has(clientToken)) {
     res.json({ error: `No response found for clientToken "${clientToken}"` });
   } else {
@@ -55,7 +64,7 @@ const checkTokenizeStatusEndpoint = (req: Request, res: Response) => {
   }
 };
 
-const authorizeClient = (env: EnvName, gateway: GatewayName, zeroDollarAuth: boolean): Promise<ISessionAuth> => {
+const authorizeClient = (env: EnvName, gateway: GatewayName, zeroDollarAuth: boolean, nonce?: string): Promise<ISessionAuth> => {
   try {
     const context: Context = Context.for(env);
     return context.client.authorizeSession({
@@ -65,6 +74,7 @@ const authorizeClient = (env: EnvName, gateway: GatewayName, zeroDollarAuth: boo
         ...context.getGatewayCreds(gateway),
         zeroDollarAuth,
       },
+      nonce,
     });
   } catch (err) {
     return Promise.reject(err);
@@ -72,9 +82,11 @@ const authorizeClient = (env: EnvName, gateway: GatewayName, zeroDollarAuth: boo
 };
 
 const authorizeClientEndpoint = (req: Request, res: Response) => {
-  authorizeClient(req.body.env, req.body.gateway, req.body.zeroDollarAuth)
+  const nonce = genNonce();
+  authorizeClient(req.body.env, req.body.gateway, req.body.zeroDollarAuth, nonce)
     .then((data: ISessionAuth) => {
       requestCache.set(data.clientToken, true);
+      nonceCache.set(data.clientToken, nonce);
       res.json(data);
     })
     .catch((err: any) => {
@@ -91,10 +103,18 @@ const tokenizeWebhook = (clientToken: string, body: any) => {
 };
 
 const tokenizeWebhookEndpoint = (req: Request, res: Response) => {
-  tokenizeWebhook(req.header("Client-Token") as string, req.body);
-  res.status(200);
-  res.send();
-  console.log(req.body);
+  const clientToken = req.header("Client-Token") as string;
+  const nonce = req.header("Nonce") as string;
+  if (nonceCache.has(clientToken) && nonce === nonceCache.get(clientToken)) {
+    nonceCache.delete(clientToken);
+    tokenizeWebhook(clientToken, req.body);
+    res.status(200);
+    res.send();
+    console.log(JSON.stringify(req.body, null, 2));
+  } else {
+    res.status(403);
+    res.send();
+  }
 };
 
 export const getRouter = () => {

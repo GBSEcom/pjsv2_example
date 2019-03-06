@@ -29,7 +29,7 @@ const zauthCheck = getEl('[data-zauth]');
 const envNameElem = getEl('#pjs2env');
 
 const consoleLog = (data: any) =>
-  console.log(JSON.stringify(data));
+  console.log(JSON.stringify(data, null, 2));
 
 const enablePaymentFields = () => {
   for (let i = 0; i < ccFields.length; i++) {
@@ -89,11 +89,21 @@ const fmtSessionReq = (zeroDollarAuth: boolean, gateway: string) => ({
   data: { env: envNameElem.value, gateway, zeroDollarAuth },
 });
 
-const fmtGetWebhookResponseReq = (clientToken: string) => ({
+const fmtGetWebhookResultReq = (clientToken: string) => ({
   headers: reqHeaders,
   url: `/api/tokenize-status/${clientToken}`,
   method: 'GET',
 });
+
+const fmtGetWebhookPayloadReq = (clientToken: string) => ({
+  url: `/api/responses/${clientToken}`,
+  method: 'GET',
+});
+
+const requestWebhookPayload = (clientToken: string) => (
+  axios(fmtGetWebhookPayloadReq(clientToken))
+    .then((res: AxiosResponse) => res.data)
+);
 
 const requestSession = (cb: ConsumerFn<ISessionAuth>) =>
   axios(fmtSessionReq(zauthCheck.checked, gatewaySelect.options[gatewaySelect.selectedIndex].value))
@@ -129,39 +139,54 @@ const delay = (milli: number, v?: any) => {
   });
 };
 
-const getWebhookResponse = (clientToken: string) =>
-  axios(fmtGetWebhookResponseReq(clientToken))
+const getWebhookResult = (clientToken: string) =>
+  axios(fmtGetWebhookResultReq(clientToken))
     .then((res: AxiosResponse) => isErrorMessage(res.data, 'Webhook'));
 
-const tryGetWebhookResponseHelper = (clientToken: string, maxAttempts: number, currentAttempt: number) => {
+const tryGetWebhookResultHelper = (clientToken: string, maxAttempts: number, currentAttempt: number) => {
   if (currentAttempt < maxAttempts) {
-    return delay(300).then(() => getWebhookResponse(clientToken).catch((error: Error) => {
-      return tryGetWebhookResponseHelper(clientToken, maxAttempts, currentAttempt + 1);
+    return delay(300).then(() => getWebhookResult(clientToken).catch((error: Error) => {
+      return tryGetWebhookResultHelper(clientToken, maxAttempts, currentAttempt + 1);
     }));
   }
-  return getWebhookResponse(clientToken)
+  return getWebhookResult(clientToken)
 };
 
-const tryGetWebhookResponse = (clientToken: string) =>
-  tryGetWebhookResponseHelper(clientToken, 3, 1);
+const tryGetWebhookResult = (clientToken: string) =>
+  tryGetWebhookResultHelper(clientToken, 3, 1);
 
 const displayTransactionMsg = (paymentForm: IPaymentForm, res: any, clientToken: string) => {
   if (res.error) {
     throw new Error('error completing transaction');
   } else {
     addClass(submitBtn, 'success-bkg');
+    const webhookPayloadPromise = requestWebhookPayload(clientToken);
     setTimeout(() => {
-      const responseLink = `<a href="/api/responses/${clientToken}" target="_blank">view response</a>`;
-      statusMsg.style.opacity = '1';
-      addClass(statusMsg, 'success');
-      statusMsg.innerHTML =
-        `Transaction Complete (${responseLink}) <br><button class="btn--secondary" data-new-trans>New Transaction</button>`;
-      removeClass(submitBtn, 'success-bkg');
-      cardType.innerHTML = '';
-      removeSubmitState();
-      form.style.display = 'none';
-      reset(paymentForm);
-      onNewTransaction();
+      webhookPayloadPromise.then((payload: any) => {
+        statusMsg.style.opacity = '1';
+        addClass(statusMsg, 'success');
+
+        const successStyle = "color: #004164; background-color: #e1eff7;";
+        const errorStyle = "color: #a70000; background-color: #ffbaba;";
+
+        const responseStyle = `overflow-x:auto; border-radius: 10px; ${
+          (payload.response.error ? errorStyle : successStyle)
+        }`;
+
+        const strPayload = JSON.stringify(payload, null, 2);
+        const responseHtml = `<pre style="${responseStyle}">${strPayload}</pre>`;
+
+        const btnHtml = "<button class=\"btn--secondary\" data-new-trans>New Transaction</button>";
+
+        statusMsg.innerHTML =
+          `Transaction Complete<br>${btnHtml}<br>${responseHtml}`;
+        removeClass(submitBtn, 'success-bkg');
+        cardType.innerHTML = '';
+        removeSubmitState();
+        form.style.display = 'none';
+        reset(paymentForm);
+        onNewTransaction();
+      });
     }, 1500);
     return res;
   }
@@ -179,7 +204,7 @@ const trySubmit = (paymentForm: IPaymentForm) => {
     .then((result: TokenizeResult) => isErrorMessage(result, "Tokenize"))
     .then((result: ITokenizeSuccess) => {
       clientToken = result.clientToken;
-      return tryGetWebhookResponse(clientToken);
+      return tryGetWebhookResult(clientToken);
     })
     .then((res: any) => displayTransactionMsg(paymentForm, res, clientToken));
 };

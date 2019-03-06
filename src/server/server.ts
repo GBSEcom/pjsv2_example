@@ -1,4 +1,5 @@
 import express from 'express';
+import * as helmet from "helmet";
 import {Application} from 'express';
 import * as http from 'http';
 import logger from 'morgan';
@@ -21,8 +22,34 @@ function normalizePort(val: any) {
 }
 
 export function makeServer() {
+  const cspSrc = {
+    api: "https://*.api.firstdata.com",
+    dataProtocol: "data:",
+    lib: "https://docs.paymentjs.firstdata.com",
+    none: "'none'",
+    self: "'self'",
+    unsafeInline: "'unsafe-inline'",
+  };
+
   const app: Application = express();
-  app.disable("x-powered-by");
+  app.use(helmet.hidePoweredBy());
+  app.use(helmet.hsts({ maxAge: 15552000 }));
+  app.use(helmet.noSniff());
+  app.use(helmet.permittedCrossDomainPolicies());
+  app.use(helmet.ieNoOpen());
+  app.use(helmet.frameguard({ action: "deny" }));
+  app.use(helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: [cspSrc.none],
+      scriptSrc: [cspSrc.self, cspSrc.lib],
+      connectSrc: [cspSrc.self, cspSrc.api, cspSrc.lib],
+      imgSrc: [cspSrc.self, cspSrc.dataProtocol],
+      styleSrc: [cspSrc.self, cspSrc.lib, cspSrc.unsafeInline],
+      childSrc: [cspSrc.lib],
+      fontSrc: [cspSrc.self, cspSrc.lib],
+      frameAncestors: [cspSrc.self, cspSrc.lib],
+    },
+  }));
   app.use(logger("dev"));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
