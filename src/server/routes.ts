@@ -110,7 +110,11 @@ const tokenizeWebhookEndpoint = (req: Request, res: Response) => {
     tokenizeWebhook(clientToken, req.body);
     res.status(200);
     res.send();
-    console.log(JSON.stringify(req.body, null, 2));
+    console.log(JSON.stringify({
+      clientToken: clientToken,
+      nonce: req.header("Nonce"),
+      body: req.body,
+    }, null, 2));
   } else {
     res.status(403);
     res.send();

@@ -1,5 +1,6 @@
-import { CustomEventName, FieldName, GatewayName } from "./constants";
+import { FieldName, GatewayName } from "./constants";
 export declare type ConsumerFn<T> = (data: T) => void;
+export declare type NoArgVoidFn = () => void;
 export interface ICardData {
     [FieldName.CARD]: string;
     [FieldName.CVV]: string;
@@ -30,6 +31,9 @@ export interface IFields {
     name: IField;
 }
 export interface IStateConfig {
+    form?: {
+        selector: string;
+    };
     fields: IFields;
     classes?: ICssClassList;
     styles?: ICssStyleList;
@@ -37,7 +41,7 @@ export interface IStateConfig {
 declare global {
     interface Window {
         firstdata: {
-            createPaymentForm: (config: IStateConfig, hooks: IPaymentFormHooks, cb: ConsumerFn<IPaymentForm | IFailureResult>, logger?: BiConsumerFn<string, string>) => void;
+            createPaymentForm: (config: IStateConfig, hooks: IPaymentFormHooks, resolve: ConsumerFn<IPaymentForm>, logger?: BiConsumerFn<string, string>) => void;
         };
     }
 }
@@ -50,7 +54,6 @@ export interface ISessionAuth {
 }
 export interface IMerchantClient {
     authorizeSession(reqData: IAuthorizeSessionRequest): Promise<ISessionAuth>;
-    tokenizeCard(auth: ISessionAuth, data: ICardData): Promise<boolean>;
 }
 export interface IBluepayCredentials {
     readonly gateway: GatewayName.BLUEPAY;
@@ -146,70 +149,22 @@ export interface ITokenizeSuccess extends ISuccessResult {
 }
 export declare type TokenizeResult = ITokenizeSuccess | IFailureResult;
 export interface IPaymentFormHooks {
-    readonly preFlowHook: (cb: ConsumerFn<ISessionAuth>) => void;
+    preFlowHook: ConsumerFn<ConsumerFn<ISessionAuth>>;
 }
 export interface IPaymentForm {
     /**
-     * @description removes iframes from dom.
-     * @example
-     *
-     *  paymentForm.destroy((result) => {
-     *    // ...
-     *  });
+     * @deprecated
      */
-    destroy(cb: ConsumerFn<{
-        frames: IFrameStatus[];
-        message: string;
-    }>): void;
-    /**
-     * @description gets data on form validation state
-     * @example
-     *
-     *  paymentForm.getState((formValidity) => {
-     *    // ...
-     *  });
-     */
-    getState(cb: ConsumerFn<FormValidity>): void;
+    tokenize(callback: ConsumerFn<TokenizeResult>): void;
+    onSubmit(resolve: ConsumerFn<string>, reject?: ConsumerFn<Error>): void;
+    createFields(resolve: NoArgVoidFn, reject?: ConsumerFn<Error>): void;
+    reset(resolve: NoArgVoidFn, reject?: ConsumerFn<Error>): void;
+    destroyFields(resolve: NoArgVoidFn, reject?: ConsumerFn<Error>): void;
+    validate(resolve: NoArgVoidFn, reject?: ConsumerFn<Error>): void;
+    authenticate(resolve: ConsumerFn<ISessionAuth>, reject?: ConsumerFn<Error>): void;
+    submit(auth: ISessionAuth, resolve: ConsumerFn<string>, reject?: ConsumerFn<Error>): void;
+    isSupported(): boolean;
     isValid(): boolean;
-    /**
-     * @description validates form
-     * @example
-     *
-     *  paymentForm.validate((validationResult) => {
-     *    if (validationResult.error) {
-     *      throw new Error("form not valid");
-     *    } else {
-     *      // ...
-     *    }
-     *  });
-     */
-    validate(cb: ConsumerFn<ValidationResult>): void;
-    /**
-     * @description custom user events
-     * @example
-     *
-     *  paymentForm.on("cardType", (res) => {
-     *    // ...
-     *  });
-     */
-    on(type: CustomEventName, callback: FieldEventHandlerCallback): void;
-    /**
-     * @description resets payment field state and css behavioral classes.
-     * @example
-     *
-     *  paymentForm.reset((result) => {
-     *    // ...
-     *  });
-     */
-    reset(cb: ConsumerFn<IMessage>): void;
-    /**
-     * @description submit card field values to PaymentJSv2 api for tokenization
-     * @example
-     *
-     *  paymentForm.tokenize((result) => {
-     *    // ...
-     *  });
-     */
-    tokenize(cb: ConsumerFn<TokenizeResult>): void;
+    getState(cb: ConsumerFn<FormValidity>): void;
 }
 export {};

@@ -10,10 +10,11 @@ import {
   TokenizeResult,
 } from '../../sdk/types';
 import { CustomEventName } from '../../sdk/constants';
+import {requestWebhookPayload, tryGetWebhookResult} from "./webhook";
 
 polyfill();
 
-const getEl = (selector) => window.document.querySelector(selector);
+const getEl = (selector: string) => window.document.querySelector(selector);
 const ccFields = window.document.getElementsByClassName('payment-fields');
 const btnLoader = getEl('.btn__loader');
 const overlay = getEl('.overlay');
@@ -62,7 +63,7 @@ const setSubmitState = () => {
   setButtonLoaderDisplayState(true);
 };
 
-const isErrorMessage = (res: any, title: string) => {
+export const isErrorMessage = (res: any, title: string) => {
   if (res && res.error) {
     statusMsg.style.opacity = '1';
     removeSubmitState();
@@ -78,7 +79,9 @@ const isErrorMessage = (res: any, title: string) => {
   }
 };
 
-const reset = (paymentForm: IPaymentForm) => paymentForm.reset(consoleLog);
+const reset = (paymentForm: IPaymentForm) => {
+  paymentForm.reset(() => consoleLog("called paymentForm.reset"));
+};
 
 const reqHeaders = { 'Content-Type': 'application/json' };
 
@@ -89,23 +92,7 @@ const fmtSessionReq = (zeroDollarAuth: boolean, gateway: string) => ({
   data: { env: envNameElem.value, gateway, zeroDollarAuth },
 });
 
-const fmtGetWebhookResultReq = (clientToken: string) => ({
-  headers: reqHeaders,
-  url: `/api/tokenize-status/${clientToken}`,
-  method: 'GET',
-});
-
-const fmtGetWebhookPayloadReq = (clientToken: string) => ({
-  url: `/api/responses/${clientToken}`,
-  method: 'GET',
-});
-
-const requestWebhookPayload = (clientToken: string) => (
-  axios(fmtGetWebhookPayloadReq(clientToken))
-    .then((res: AxiosResponse) => res.data)
-);
-
-const requestSession = (cb: ConsumerFn<ISessionAuth>) =>
+const requestSession = (cb: ConsumerFn<ISessionAuth>): void => {
   axios(fmtSessionReq(zauthCheck.checked, gatewaySelect.options[gatewaySelect.selectedIndex].value))
     .then((res: AxiosResponse) => isErrorMessage(res.data, 'Authorize Client'))
     .then(cb)
@@ -124,36 +111,15 @@ const requestSession = (cb: ConsumerFn<ISessionAuth>) =>
       }
       throw new Error("Session Authorization Error");
     });
+};
 
 const onNewTransaction = () => {
-  getEl('[data-new-trans]').addEventListener('click', (e) => {
+  getEl('[data-new-trans]').addEventListener('click', (e: Event) => {
     e.preventDefault();
     form.style.display = 'block';
     statusMsg.innerHTML = '';
   });
 };
-
-const delay = (milli: number, v?: any) => {
-  return new Promise<any>((resolve) => {
-    setTimeout(resolve.bind(null, v), milli);
-  });
-};
-
-const getWebhookResult = (clientToken: string) =>
-  axios(fmtGetWebhookResultReq(clientToken))
-    .then((res: AxiosResponse) => isErrorMessage(res.data, 'Webhook'));
-
-const tryGetWebhookResultHelper = (clientToken: string, maxAttempts: number, currentAttempt: number) => {
-  if (currentAttempt < maxAttempts) {
-    return delay(300).then(() => getWebhookResult(clientToken).catch((error: Error) => {
-      return tryGetWebhookResultHelper(clientToken, maxAttempts, currentAttempt + 1);
-    }));
-  }
-  return getWebhookResult(clientToken)
-};
-
-const tryGetWebhookResult = (clientToken: string) =>
-  tryGetWebhookResultHelper(clientToken, 3, 1);
 
 const displayTransactionMsg = (paymentForm: IPaymentForm, res: any, clientToken: string) => {
   if (res.error) {
@@ -162,6 +128,7 @@ const displayTransactionMsg = (paymentForm: IPaymentForm, res: any, clientToken:
     addClass(submitBtn, 'success-bkg');
     const webhookPayloadPromise = requestWebhookPayload(clientToken);
     setTimeout(() => {
+      removeSubmitState();
       webhookPayloadPromise.then((payload: any) => {
         statusMsg.style.opacity = '1';
         addClass(statusMsg, 'success');
@@ -192,37 +159,33 @@ const displayTransactionMsg = (paymentForm: IPaymentForm, res: any, clientToken:
   }
 };
 
-const tokenize = (paymentForm: IPaymentForm): Promise<TokenizeResult> => {
-  return new Promise<TokenizeResult>((resolve: ConsumerFn<TokenizeResult>) => {
-    paymentForm.tokenize(resolve);
-  });
-};
-
-const trySubmit = (paymentForm: IPaymentForm) => {
-  let clientToken: string = '';
-  tokenize(paymentForm)
-    .then((result: TokenizeResult) => isErrorMessage(result, "Tokenize"))
-    .then((result: ITokenizeSuccess) => {
-      clientToken = result.clientToken;
-      return tryGetWebhookResult(clientToken);
-    })
-    .then((res: any) => displayTransactionMsg(paymentForm, res, clientToken));
-};
-
 const onSubmit = (paymentForm: IPaymentForm) => {
-  form.addEventListener('submit', (e: any) => {
+  const onSuccess = (clientToken: string) => {
+    tryGetWebhookResult(clientToken)
+      .then((res: any) => isErrorMessage(res, 'Webhook'))
+      .then((res: any) => displayTransactionMsg(paymentForm, res, clientToken));
+  };
+
+  const onError = (error: Error) => {
+    consoleLog(error.toString());
+    statusMsg.style.opacity = '1';
+    removeSubmitState();
+    statusMsg.innerHTML = `Tokenize Error: ${error.message}`;
+  };
+
+  form.addEventListener('submit', (e: Event) => {
     e.preventDefault();
-    if (paymentForm.isValid()) {
-      try {
-        setSubmitState();
-        trySubmit(paymentForm);
-      } catch (error) {
-        removeSubmitState();
-        consoleLog(error.toString());
-      }
+    setSubmitState();
+    if ("onSubmit" in paymentForm) {
+      paymentForm.onSubmit(onSuccess, onError);
     } else {
-      removeSubmitState();
-      consoleLog('form not valid');
+      paymentForm.tokenize((tokenizeResult: TokenizeResult) => {
+        if (tokenizeResult.error) {
+          onError(new Error(tokenizeResult.reason));
+        } else {
+          onSuccess(tokenizeResult.clientToken);
+        }
+      });
     }
   });
 };
@@ -237,7 +200,7 @@ const onReset = (paymentForm: IPaymentForm) => {
 const onDestroy = (paymentForm: IPaymentForm) => {
   destroyBtn.addEventListener('click', (e: any) => {
     e.preventDefault();
-    paymentForm.destroy(consoleLog);
+    paymentForm.destroyFields(() => consoleLog("called paymentForm.destroyFields"));
   });
 };
 
@@ -325,13 +288,11 @@ const getStateConfig = (): IStateConfig => {
 const createAsync = (config: IStateConfig, hooks: IPaymentFormHooks): Promise<IPaymentForm> => {
   const logger = (level: string, msg: string) => console.log(msg);
   return new Promise<IPaymentForm>((resolve: ConsumerFn<IPaymentForm>, reject: ConsumerFn<IFailureResult>) => {
-    window.firstdata.createPaymentForm(config, hooks, (result: IPaymentForm|IFailureResult) => {
-        if ("error" in result) {
-          reject(result);
-        } else {
-          resolve(result);
-        }
-      }, logger);
+    try {
+      window.firstdata.createPaymentForm(config, hooks, resolve, logger);
+    } catch (error) {
+      reject({ error: true, reason: error.message });
+    }
   })
 };
 

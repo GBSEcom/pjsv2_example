@@ -1,17 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = require("axios");
-const crypto_1 = require("crypto");
-const js_base64_1 = require("js-base64");
-const NodeRSA = require("node-rsa");
+const crypto = require("crypto");
 const constants_1 = require("./constants");
-const signMsg = (secret, msg) => crypto_1.createHmac("sha256", secret)
+const signMsg = (secret, msg) => crypto.createHmac("sha256", secret)
     .update(msg)
     .digest("base64");
 class MerchantClient {
     constructor(baseServiceUrl, logger) {
         this.baseServiceUrl = baseServiceUrl;
         this.logger = logger;
+    }
+    validateNonce(nonce, response) {
+        if (response.headers["nonce"]) {
+            if (response.headers["nonce"] === nonce) {
+                return true;
+            }
+            else {
+                this.log("error", "nonce validation failed");
+            }
+        }
+        else {
+            this.log("error", "authorize session response missing nonce");
+        }
+        return false;
     }
     authorizeSession(reqData) {
         this.log("debug", "entering authorizeSession");
@@ -35,7 +47,7 @@ class MerchantClient {
         };
         return this.sendRequest(httpParams)
             .then((response) => {
-            if (!response.data || !response.data.publicKeyBase64 || !response.headers["client-token"] || !response.headers["nonce"] || response.headers["nonce"] !== nonce) {
+            if (!response.data || !response.data.publicKeyBase64 || !response.headers["client-token"] || !this.validateNonce(nonce, response)) {
                 this.log("error", {
                     data: response.data,
                     headers: response.headers,
@@ -47,30 +59,14 @@ class MerchantClient {
             return Promise.resolve({ clientToken, publicKeyBase64 });
         });
     }
-    tokenizeCard(auth, data) {
-        this.log("debug", "entering tokenizeCard");
-        this.log("debug", "encrypting card data");
-        const encoded = this.encodeCardData(data);
-        const encryptedData = this.encrypt(encoded, auth.publicKeyBase64);
-        this.log("debug", "formatting request");
-        const httpParams = {
-            data: { encryptedData },
-            headers: {
-                "Client-Token": `Bearer ${auth.clientToken}`,
-                "Content-Type": "application/json",
-            },
-            maxRedirects: 0,
-            method: "post",
-            url: `${this.baseServiceUrl}/client/tokenize`,
-        };
-        return this.sendRequest(httpParams)
-            .then((response) => {
-            return response.status === 200;
-        });
-    }
     log(level, data) {
         if (this.logger) {
-            this.logger(level, JSON.stringify(data));
+            if (typeof data === 'string') {
+                this.logger(level, data);
+            }
+            else {
+                this.logger(level, JSON.stringify(data));
+            }
         }
     }
     encodeCardData(data) {
@@ -80,11 +76,6 @@ class MerchantClient {
             data[constants_1.FieldName.CVV],
             data[constants_1.FieldName.EXP].replace(/\s/g, ""),
         ].join("~");
-    }
-    encrypt(data, publicKeyBase64) {
-        const publicKey = js_base64_1.Base64.decode(publicKeyBase64);
-        const keyObj = new NodeRSA(publicKey);
-        return keyObj.encrypt(data, "base64");
     }
     sendRequest(config) {
         this.log("debug", "sending request");
