@@ -53,10 +53,10 @@ module.exports = {
 
   pjs2: {
     uat: {
-      // Apigee Consumer Key
+      // PaymentJS apiKey
       apiKey: '',
 
-      // Apigee Consumer Secret
+      // PaymentJS apiSecret
       apiSecret: '',
     },
     prod: {
