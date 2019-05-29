@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var ServiceUrl;
 (function (ServiceUrl) {
-    ServiceUrl["STG"] = "https://dev.api.firstdata.com/paymentjs/v2";
+    ServiceUrl["STG"] = "https://int.api.firstdata.com/paymentjs/v2";
     ServiceUrl["QA"] = "https://qa.api.firstdata.com/paymentjs/v2";
     ServiceUrl["UAT"] = "https://cert.api.firstdata.com/paymentjs/v2";
     ServiceUrl["PROD"] = "https://prod.api.firstdata.com/paymentjs/v2";
