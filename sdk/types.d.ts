@@ -3,7 +3,7 @@ export declare type ConsumerFn<T> = (data: T) => void;
 export declare type NoArgVoidFn = () => void;
 export interface ICardData {
     [FieldName.CARD]: string;
-    [FieldName.CVV]: string;
+    [FieldName.CVV]?: string;
     [FieldName.EXP]: string;
     [FieldName.NAME]: string;
 }
@@ -26,7 +26,7 @@ export interface IField {
 }
 export interface IFields {
     card: IField;
-    cvv: IField;
+    cvv?: IField;
     exp: IField;
     name: IField;
 }
