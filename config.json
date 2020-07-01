@@ -1,0 +1,79 @@
+{
+  "gateways": {
+    "uat": {
+      "BLUEPAY": {
+        "gateway": "BLUEPAY",
+        "accountId": "",
+        "secretKey": "",
+        "zeroDollarAuth": false
+      },
+
+      "CARD_CONNECT": {
+        "gateway": "CARD_CONNECT",
+        "apiUserAndPass": "",
+        "merchantId": "",
+        "zeroDollarAuth": false
+      },
+
+      "PAYEEZY": {
+        "gateway": "PAYEEZY",
+        "apiKey": "",
+        "apiSecret": "",
+        "authToken": "",
+        "transarmorToken": "",
+        "zeroDollarAuth": false
+      },
+
+      "IPG": {
+        "gateway": "IPG",
+        "apiKey": "",
+        "apiSecret": "",
+        "zeroDollarAuth": false
+      }
+    },
+
+    "prod": {
+      "BLUEPAY": {
+        "gateway": "BLUEPAY",
+        "accountId": "",
+        "secretKey": "",
+        "zeroDollarAuth": false
+      },
+
+      "CARD_CONNECT": {
+        "gateway": "CARD_CONNECT",
+        "apiUserAndPass": "",
+        "merchantId": "",
+        "zeroDollarAuth": false
+      },
+
+      "PAYEEZY": {
+        "gateway": "PAYEEZY",
+        "apiKey": "",
+        "apiSecret": "",
+        "authToken": "",
+        "transarmorToken": "",
+        "zeroDollarAuth": false
+      },
+
+      "IPG": {
+        "gateway": "IPG",
+        "apiKey": "",
+        "apiSecret": "",
+        "storeId": "",
+        "zeroDollarAuth": false
+      }
+    }
+  },
+
+  "pjs2": {
+    "uat": {
+      "apiKey": "",
+      "apiSecret": ""
+    },
+    "prod": {
+      "apiKey": "",
+      "apiSecret": ""
+    }
+  }
+}

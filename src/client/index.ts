@@ -1,33 +1,30 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
-import {polyfill} from 'es6-promise';
-import { addClass, removeClass } from './dom';
+import axios, { AxiosError, AxiosResponse } from "axios";
+import {polyfill} from "es6-promise";
+import { addClass, removeClass } from "./dom";
 import {
-  ConsumerFn, ICssClassList, ICssStyleList,
+  Consumer, ICssClassList, ICssStyleList,
   IFailureResult, IFields,
   IPaymentForm,
   IPaymentFormHooks, ISessionAuth, IStateConfig,
-  ITokenizeSuccess,
-  TokenizeResult,
-} from '../../sdk/types';
-import { CustomEventName } from '../../sdk/constants';
+  CustomEventName,
+} from '../common/pjs2';
 import {requestWebhookPayload, tryGetWebhookResult} from "./webhook";
 
 polyfill();
 
 const getEl = (selector: string) => window.document.querySelector(selector);
 const ccFields = window.document.getElementsByClassName('payment-fields');
-const btnLoader = getEl('.btn__loader');
-const overlay = getEl('.overlay');
-const statusMsg = getEl('.status');
-const form = getEl('#form');
-const submitBtn = getEl('[data-submit-btn]');
-const cardType = getEl('[data-card-type]');
-const resetBtn = getEl('[data-reset-btn]');
-const destroyBtn = getEl('[data-destroy-btn]');
-const getStateBtn = getEl('[data-getState-btn]');
-const gatewaySelect = getEl('[data-gateway]');
-const zauthCheck = getEl('[data-zauth]');
-const envNameElem = getEl('#pjs2env');
+const btnLoader = getEl('.btn__loader') as HTMLElement;
+const overlay = getEl('.overlay') as HTMLElement;
+const statusMsg = getEl('.status') as HTMLElement;
+const form = getEl('#form') as HTMLElement;
+const submitBtn = getEl('[data-submit-btn]') as HTMLButtonElement;
+const cardType = getEl('[data-card-type]') as HTMLElement;
+const resetBtn = getEl('[data-reset-btn]') as HTMLButtonElement;
+const destroyBtn = getEl('[data-destroy-btn]') as HTMLButtonElement;
+const getStateBtn = getEl('[data-getState-btn]') as HTMLButtonElement;
+const gatewaySelect = getEl('[data-gateway]') as HTMLSelectElement;
+const envNameElem = getEl('#pjs2env') as HTMLInputElement;
 
 const consoleLog = (data: any) =>
   console.log(JSON.stringify(data, null, 2));
@@ -45,7 +42,7 @@ const setButtonLoaderDisplayState = (state: boolean) => {
 const enableForm = () => {
   overlay.style.opacity = '0';
   setTimeout(() => {
-    overlay.parentNode.removeChild(overlay);
+    (overlay.parentNode as any).removeChild(overlay);
     submitBtn.disabled = false;
     enablePaymentFields();
     removeClass(submitBtn, 'disabled-bkg');
@@ -85,15 +82,15 @@ const reset = (paymentForm: IPaymentForm) => {
 
 const reqHeaders = { 'Content-Type': 'application/json' };
 
-const fmtSessionReq = (zeroDollarAuth: boolean, gateway: string) => ({
+const fmtSessionReq = (gateway: string) => ({
   headers: reqHeaders,
-  url: '/api/authorize-client',
-  method: 'POST',
-  data: { env: envNameElem.value, gateway, zeroDollarAuth },
+  url: '/api/authorize-session',
+  method: 'POST' as "POST",
+  data: { env: envNameElem.value, gateway },
 });
 
-const requestSession = (cb: ConsumerFn<ISessionAuth>): void => {
-  axios(fmtSessionReq(zauthCheck.checked, gatewaySelect.options[gatewaySelect.selectedIndex].value))
+const requestSession = (cb: Consumer<ISessionAuth>): void => {
+  axios(fmtSessionReq(gatewaySelect.options[gatewaySelect.selectedIndex].value))
     .then((res: AxiosResponse) => isErrorMessage(res.data, 'Authorize Client'))
     .then(cb)
     .catch((err: AxiosError) => {
@@ -114,7 +111,7 @@ const requestSession = (cb: ConsumerFn<ISessionAuth>): void => {
 };
 
 const onNewTransaction = () => {
-  getEl('[data-new-trans]').addEventListener('click', (e: Event) => {
+  (getEl('[data-new-trans]') as any).addEventListener('click', (e: Event) => {
     e.preventDefault();
     form.style.display = 'block';
     statusMsg.innerHTML = '';
@@ -176,17 +173,7 @@ const onSubmit = (paymentForm: IPaymentForm) => {
   form.addEventListener('submit', (e: Event) => {
     e.preventDefault();
     setSubmitState();
-    if ("onSubmit" in paymentForm) {
-      paymentForm.onSubmit(onSuccess, onError);
-    } else {
-      paymentForm.tokenize((tokenizeResult: TokenizeResult) => {
-        if (tokenizeResult.error) {
-          onError(new Error(tokenizeResult.reason));
-        } else {
-          onSuccess(tokenizeResult.clientToken);
-        }
-      });
-    }
+    paymentForm.onSubmit(onSuccess, onError);
   });
 };
 
@@ -287,9 +274,9 @@ const getStateConfig = (): IStateConfig => {
 
 const createAsync = (config: IStateConfig, hooks: IPaymentFormHooks): Promise<IPaymentForm> => {
   const logger = (level: string, msg: string) => console.log(msg);
-  return new Promise<IPaymentForm>((resolve: ConsumerFn<IPaymentForm>, reject: ConsumerFn<IFailureResult>) => {
+  return new Promise<IPaymentForm>((resolve: Consumer<IPaymentForm>, reject: Consumer<IFailureResult>) => {
     try {
-      window.firstdata.createPaymentForm(config, hooks, resolve, logger);
+      (window as any).firstdata.createPaymentForm(config, hooks, resolve, logger);
     } catch (error) {
       reject({ error: true, reason: error.message });
     }

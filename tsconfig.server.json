@@ -1,27 +1,22 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
+    "allowJs": false,
     "forceConsistentCasingInFileNames": true,
     "preserveConstEnums": true,
     "strictNullChecks": true,
     "module": "commonjs",
-    "noImplicitAny": false,
-    "target": "es5",
+    "noImplicitAny": true,
+    "target": "es6",
     "sourceMap": false,
     "strict": true,
     "removeComments": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
-    "jsx": "react",
-    "lib": ["es6", "es2015"]
+    "outDir": "build/"
   },
   "include": [
     "src/server/*.ts",
-    "src/server/*.tsx",
-    "src/common/*.ts",
-    "src/common/*.tsx"
+    "src/common/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["build", "node_modules", "src/client"]
 }

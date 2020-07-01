@@ -1,16 +1,12 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
+    "allowJs": false,
     "forceConsistentCasingInFileNames": true,
-    "jsx": "preserve",
-    "lib": ["es2015"],
+    "lib": ["ES2015", "DOM"],
     "module": "esnext",
     "moduleResolution": "node",
     "noEmit": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "preserveConstEnums": true,
     "removeComments": true,
     "sourceMap": true,
@@ -21,8 +17,7 @@
   "include": [
     "src/client/*.ts",
     "src/client/*.tsx",
-    "src/common/*.ts",
-    "src/common/*.tsx"
+    "src/common/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["build", "node_modules", "src/server"]
 }

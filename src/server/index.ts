@@ -1,5 +1,12 @@
+import { startServer } from "./server";
+import { getRouter } from "./router";
+import { loadConfigAsync } from "./config";
 
-import { startServer } from './server';
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
-startServer();
+loadConfigAsync()
+  .then((config) => {
+    const router = getRouter(config);
+    startServer(port, router);
+  });
 
